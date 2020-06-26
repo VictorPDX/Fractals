@@ -52,7 +52,9 @@ NOTE: The 'X' in -lX11 is capitalized
 */
 
 
-#include  "FPToolkit.c"
+#include  "../FPToolkit/FPToolkit.c"
+
+
 
 
 int main()
@@ -64,13 +66,15 @@ int main()
    double a[20], b[20] ;
    double numab ;
 
-   
+//       // must do this before G_init_graphics() if using repl.it
+//    G_choose_repl_display() ;
+
    // must do this before you do 'almost' any other graphical tasks 
    swidth = 400 ;  sheight = 600 ;
    G_init_graphics (swidth,sheight) ;  // interactive graphics
 
    
-   // clear the screen in a given color
+   // clear the screen in a given color Background color
    G_rgb (0.3, 0.3, 0.3) ; // dark gray
    G_clear () ;
 
@@ -86,34 +90,34 @@ int main()
 
    
    // aligned rectangles
-   G_rgb (0.0, 0.0, 1.0) ; // blue
+   G_rgb (0.0, 0.0, 1.0) ; // blue   stays blue until we change it
    lowleftx = 200 ; lowlefty = 50 ; width = 10 ; height = 30 ;
-   G_rectangle (lowleftx, lowlefty, width, height) ;
+   G_rectangle (lowleftx, lowlefty, width, height) ; // not filled
    lowleftx = 250 ; 
-   G_fill_rectangle (lowleftx, lowlefty, width, height) ;
+   G_fill_rectangle (lowleftx, lowlefty, width, height) ; // filled
 
    
    // triangles
    G_rgb (1.0, 1.0, 0.0) ; // yellow
-   G_triangle (10, 300,  40,300,  60,250) ;
+   G_triangle (     10, 300,      40,300,  60,250) ;
    G_fill_triangle (10,100,  40,100,  60,150) ;
 
    
    // circles   
    G_rgb (1.0, 0.5, 0.0) ; // orange
-   G_circle (100, 300, 75) ;
+   G_circle (100, 300, 75) ;  // x, y , radius
    G_fill_circle (370, 200, 50) ;
 
    
    // polygons
-   G_rgb (0.0, 0.0, 0.0) ; // black
+   G_rgb (0.0, 0.0, 0.0) ; // black  set color 
    x[0] = 100 ;   y[0] = 100 ;
    x[1] = 100 ;   y[1] = 300 ;
    x[2] = 300 ;   y[2] = 300 ;
    x[3] = 300 ;   y[3] = 100 ;
    x[4] = 200 ;   y[4] = 175 ;
-   numxy = 5 ;
-   G_polygon (x,y,numxy) ;
+   numxy = 5 ;  // number of points that are occupied in the array
+   G_polygon (x,y,numxy) ; // x and y are double arrays
 
 
    G_rgb (0.4, 0.2, 0.1) ; // brown
@@ -122,7 +126,8 @@ int main()
    a[2] = 275 ;   b[2] = 500 ;
    a[3] = 125 ;   b[3] = 400 ;
    numab = 4 ;
-   G_fill_polygon (a,b,numab) ;
+   G_fill_polygon (a,b,numab) ; // covering the green line the order of which the drawings matter
+
 
 
 
@@ -132,8 +137,8 @@ int main()
 
    G_rgb(1,0,0) ;
    
-   G_wait_click(p) ;
-   G_fill_circle(p[0],p[1],2) ;
+   G_wait_click(p) ;  // gets the x and y from the click
+   G_fill_circle(p[0],p[1],2) ; // x, y, and radius size 2
 
    G_wait_click(q) ;
    G_fill_circle(q[0],q[1],2) ;   
@@ -143,10 +148,11 @@ int main()
    
    int key ;   
    key =  G_wait_key() ; // pause so user can see results
-
-   //G_save_image_to_file("demo.xwd") ;
+   
+   //   G_save_image_to_file("demo.xwd") ;
    G_save_to_bmp_file("demo.bmp") ;
 }
+
 
 
 

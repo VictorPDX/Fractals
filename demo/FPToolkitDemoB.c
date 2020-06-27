@@ -97,13 +97,13 @@ int main()
    G_fill_rectangle (lowleftx, lowlefty, width, height) ; // filled
 
    
-   // triangles
+   // Triangles
    G_rgb (1.0, 1.0, 0.0) ; // yellow
    G_triangle (     10, 300,      40,300,  60,250) ;
    G_fill_triangle (10,100,  40,100,  60,150) ;
 
    
-   // circles   
+   // CIRCLES   
    G_rgb (1.0, 0.5, 0.0) ; // orange
    G_circle (100, 300, 75) ;  // x, y , radius
    G_fill_circle (370, 200, 50) ;

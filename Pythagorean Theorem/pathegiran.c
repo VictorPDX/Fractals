@@ -54,10 +54,15 @@ NOTE: The 'X' in -lX11 is capitalized
 
 #include  "../FPToolkit/FPToolkit.c"
 
+#define POINTER(c, x, y) c[0] = &x; c[1] = &y 
 // array members of structures are deeply copied. In below program deep copy happens when we returned instance is copied in main.
 typedef struct {
-   double c[2];
+   double x, y;
+   double* c[2];
 }Coord;
+
+
+
 
 // double* click(double* p){
 //    G_rgb(1,0,0) ; // circle colors
@@ -69,12 +74,28 @@ typedef struct {
 
 Coord getClick(){
    Coord temp;
-   G_rgb(1,0,0) ; // circle colors
+   // G_rgb(1,0,0) ; // circle colors
    
-   G_wait_click(temp.c) ;  // gets the x and y from the click
-   G_fill_circle(temp.c[0],temp.c[1],2) ; // x, y, and radius size 2
+   G_wait_click(*temp.c) ;  // gets the x and y from the click
+   G_fill_circle(temp.x,temp.y,2) ; // x, y, and radius size 2
+   G_display_image();  
+
    return temp;
 }
+
+Coord drawClick(int x, int y){
+   Coord temp;
+   // G_rgb(1,0,0) ; // circle colors
+   
+   temp.x = x;
+   temp.y = y;
+   G_fill_circle(temp.x,temp.y,2) ; // x, y, and radius size 2
+   G_display_image();  
+   printf("Mid point(%d, %d)\n",x,y);
+
+   return temp;
+}
+
 
 double gap(double c1, double c2, int n){
    return (c2 - c1) / n;
@@ -83,14 +104,45 @@ double gap(double c1, double c2, int n){
 Coord midpoint(Coord p, Coord q){
    Coord temp;
 
-   temp.c[0] = (p.c[0] + q.c[0])/2;
-   temp.c[1] = (p.c[1] + q.c[1])/2;
+   temp.x = (p.x + q.x)/2;
+   temp.y = (p.y + q.y)/2;
    return temp;
 }
 
 double norm(Coord p, Coord q){
-   return sqrt(pow(q.c[0]-p.c[0], 2) + pow(q.c[1]-p.c[1], 2) );
+   return sqrt(pow(q.x-p.x, 2) + pow(q.y-p.y, 2) );
 }
+
+
+
+Coord findThirdPoint(Coord p, Coord q){
+   Coord temp;
+   double lineSize = norm(p, q);
+   double hypothenus = lineSize;
+   double base = lineSize/2.0;
+   printf("Hypothenus = %.0f\n", lineSize);
+   printf("Base = %.0f\n", base);
+
+   // opposite is height
+   double angle = 60;
+   double radians = angle * M_PI/180;
+   // tan 60 = Opposite/adjecent;
+   double height = tan(radians) * base;
+   // double height = sqrt(pow(hypothenus, 2) - pow(base, 2) );
+
+   temp.x = p.x;
+   temp.y = q.y;
+   // temp = drawClick(temp.x, temp.y);
+
+
+   return temp;
+
+}
+
+
+
+
+
 
 
 int main()
@@ -106,12 +158,12 @@ int main()
 //    G_choose_repl_display() ;
 
    int n;
-   printf("How many circles do you want to draw on the line? ");
-   scanf("%d", &n);
-   if(n < 1){
-      printf("\nERROR: Unacceptable number of circles\n");
-      exit(1);
-   }
+   // printf("How many levels do you want to draw? ");
+   // scanf("%d", &n);
+   // if(n < 1){
+   //    printf("\nERROR: Unacceptable number of circles\n");
+   //    exit(1);
+   // }
 
    // must do this before you do 'almost' any other graphical tasks 
    swidth = 600 ;  sheight = 600 ;
@@ -122,93 +174,77 @@ int main()
    G_rgb (0, 0, 0) ; // dark black
    G_clear () ;
 
+   G_rgb(1,0,0) ; // circle colors
    // get the line from the user
-   Coord p, q;
-   
-   p = getClick();
-   q = getClick();
+   Coord p, q, v;
+   POINTER(p.c, p.x, p.y);
+   POINTER(q.c, q.x, q.y);
+   POINTER(v.c, v.x, v.y);
 
    #ifdef DEBUG
-      p.c[0] = 100;
-      p.c[1] = 100;
-      q.c[0] = 200;
-      q.c[1] = 50;
+      // p.x = 500;
+      // p.y = 500;
+      // q.x = 200;
+      // q.y = 200;
+      p = drawClick(500, 500);
+      q = drawClick(200, 200);
+   #else
+
+   G_wait_click(*p.c);
+   G_wait_click(*q.c);
+   
    #endif
+   // p.x = &p.x;
+   // p.y = &p.y;
+   // q.x = &q.x;
+   // q.y = &q.y;
    
-   G_rgb(0,1,0.5) ;
-   G_line(p.c[0],p.c[1], q.c[0],q.c[1]) ;  // draw the line
+   if(q.x > p.x){
+      Coord temp;
+      temp.x = p.x;
+      temp.y = p.y;
+      p.x = q.x;
+      p.y = q.y;
+      q.x = temp.x;
+      q.y = temp.y;
 
-   double delta[2];   // the gap is equal  to two radi or a diameter
-   int gaps = n-1;
-   delta[0] = gap(p.c[0], q.c[0], gaps);
-   delta[1] = gap(p.c[1], q.c[1], gaps);
-
-   Coord firstCenter; // really first circle entirely on the line
-   firstCenter.c[0] = p.c[0] + delta[0];
-   firstCenter.c[1] = p.c[1] + delta[1];
-
-   // the midpoint is the radius, from the center of the first circle to first gap
-   Coord rPt = midpoint(p, firstCenter);  // the coordinates of the radius on the line
-   double r = norm(p, rPt);  
-
-   // draw A circles
-   G_rgb(0, 0, 1); // circle colors
-   double cx, cy;
-   cx = p.c[0] + 0;
-   cy = p.c[1] + 0;
-   G_circle(cx, cy, r);
-   for (int i = 0; i<gaps; ++i){
-      cx += delta[0];
-      cy += delta[1];
-      G_circle(cx, cy, r);
-      G_display_image();  
    }
-
-   gaps = n*2;
-
-   delta[0] = gap(p.c[0], q.c[0], gaps); // the gap is equal  to two radi or a diameter
-   delta[1] = gap(p.c[1], q.c[1], gaps);
    
-   firstCenter.c[0] = p.c[0] + delta[0]; // the center of the first circle
-   firstCenter.c[1] = p.c[1] + delta[1];
+   v = findThirdPoint(p, q);
+   G_rgb(.2,.4,.6);
+   // G_triangle(p.x, p.y, q.x, q.y, v.x, v.y);
+   // G_display_image();  
 
-   
-   r = norm(p, firstCenter);  // from p the starting point, to the center of the first circle
-
-
-
-   // draw B circles
-   G_rgb(1, 0, 0); // circle colors
-   double cx2, cy2;
-   cx2 = firstCenter.c[0] + 0;
-   cy2 = firstCenter.c[1] + 0;
-   G_circle(cx2, cy2, r);
+   double theight = norm(p, v);
+   G_rgb(1,0,0);
+   G_fill_rectangle(v.x, v.y, theight, theight);
    G_display_image();  
-   for (int i = 1; i<n; ++i){
-      cx2 += delta[0]*2;
-      cy2 += delta[1]*2;
-      // if(i%2==0){
-         G_circle(cx2, cy2, r);
-         G_display_image();  
-      // }
-   }
-
-
-
-
    
-   // double gap = swidth / (n-1);
+   double base = norm(q, v);
+   Coord bp;
+   bp.y = q.y - base;
+   bp.x = q.x;
+   G_rgb(0,1,0);
+   G_fill_rectangle(bp.x, bp.y, base, base);
+   G_display_image();  
 
-//   basicParabola(n, gap, swidth, sheight);
-   // challengeParabola(n, gap, swidth, sheight);
-   // double gap2 = swidth / (2*(n-1));
-   // challengeParabolaRecursive(n, gap2, swidth, sheight, True, True);
-
+   double hyp = norm(q, p);
+   double z = sqrt(2*hyp*hyp);
+   double xp[4], yp[4];
+   double num = 4;
+   xp[0] = q.x;       yp[0] = q.y;
+   xp[1] = p.x;       yp[1] = p.y;
    
+   xp[2] = p.x - base;       yp[2] = p.y+  theight;
+   xp[3] = q.x - base;       yp[3] = q.y+  theight;
+   G_rgb(0,0,1);
+   G_fill_polygon (xp,yp,num) ; // x and y are double arrays
+
+
    int key ;   
    key =  G_wait_key() ; // pause so user can see results
    
    //   G_save_image_to_file("demo.xwd") ;
-   G_save_to_bmp_file("circles.bmp") ;
+   G_save_to_bmp_file("pythagorean_Theorem.bmp") ;
 }
 

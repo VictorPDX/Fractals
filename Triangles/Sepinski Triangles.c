@@ -69,12 +69,28 @@ typedef struct {
 
 Coord getClick(){
    Coord temp;
-   G_rgb(1,0,0) ; // circle colors
+   // G_rgb(1,0,0) ; // circle colors
    
    G_wait_click(temp.c) ;  // gets the x and y from the click
    G_fill_circle(temp.c[0],temp.c[1],2) ; // x, y, and radius size 2
+   G_display_image();  
+
    return temp;
 }
+
+Coord drawClick(int x, int y){
+   Coord temp;
+   // G_rgb(1,0,0) ; // circle colors
+   
+   temp.c[0] = x;
+   temp.c[1] = y;
+   G_fill_circle(temp.c[0],temp.c[1],2) ; // x, y, and radius size 2
+   G_display_image();  
+   printf("Mid point(%d, %d)\n",x,y);
+
+   return temp;
+}
+
 
 double gap(double c1, double c2, int n){
    return (c2 - c1) / n;
@@ -93,6 +109,74 @@ double norm(Coord p, Coord q){
 }
 
 
+
+Coord findThirdPoint(Coord p, Coord q){
+   Coord temp;
+   double lineSize = norm(p, q);
+   double hypothenus = lineSize;
+   double base = lineSize/2.0;
+   printf("Hypothenus = %.0f\n", lineSize);
+   printf("Base = %.0f\n", base);
+
+   // opposite is height
+   double angle = 60;
+   double radians = angle * M_PI/180;
+   // tan 60 = Opposite/adjecent;
+   double height = tan(radians) * base;
+   // double height = sqrt(pow(hypothenus, 2) - pow(base, 2) );
+
+   int x = p.c[0] + base;
+   int y = p.c[1] + height;
+   temp.c[0] = x;
+   temp.c[1] = y;
+   temp = drawClick(x, y);
+
+
+   return temp;
+
+}
+
+
+void ST(Coord A, Coord B, Coord C, int d){
+   if(d == 0) return;
+   
+   // compute the midpoints
+   Coord AB_mid = midpoint(A, B);
+   Coord BC_mid = midpoint(B, C);
+   Coord CA_mid = midpoint(C, A);
+   
+   // AB_mid = midpoint(A, B);
+   // BC_mid = midpoint(B, C);
+   // CA_mid = midpoint(C, A);
+
+   G_rgb(0, 1, 0);
+   drawClick(AB_mid.c[0], AB_mid.c[1]);
+   drawClick(BC_mid.c[0], BC_mid.c[1]);
+   drawClick(CA_mid.c[0], CA_mid.c[1]);
+
+   // A = AB_mid;
+   // B = BC_mid;
+   // C = CA_mid;
+
+   // fill triangle
+   G_rgb(0,0,1);
+   G_triangle(A.c[0], A.c[1], B.c[0], B.c[1], C.c[0], C.c[1]);
+
+
+
+   ST(A, AB_mid, CA_mid, d-1);
+   ST(B, AB_mid, BC_mid, d-1);
+   ST(C, CA_mid, BC_mid, d-1);
+
+
+
+}
+
+
+
+
+
+
 int main()
 {
    int    swidth, sheight ;
@@ -106,7 +190,7 @@ int main()
 //    G_choose_repl_display() ;
 
    int n;
-   printf("How many circles do you want to draw on the line? ");
+   printf("How many levels do you want to draw? ");
    scanf("%d", &n);
    if(n < 1){
       printf("\nERROR: Unacceptable number of circles\n");
@@ -123,11 +207,17 @@ int main()
    G_clear () ;
 
    // get the line from the user
-   Coord p, q;
+   Coord p, q, v;
    
-   p = getClick();
-   q = getClick();
+   G_rgb(1,0,0) ; // circle colors
+   p = drawClick(50, 50);
+   q = drawClick(550, 50);
+   v = findThirdPoint(p, q);
+   G_triangle(p.c[0], p.c[1], q.c[0], q.c[1], v.c[0], v.c[1]);
 
+
+   ST(p, q, v, n);
+   
    #ifdef DEBUG
       p.c[0] = 100;
       p.c[1] = 100;
@@ -135,75 +225,6 @@ int main()
       q.c[1] = 50;
    #endif
    
-   G_rgb(0,1,0.5) ;
-   G_line(p.c[0],p.c[1], q.c[0],q.c[1]) ;  // draw the line
-
-   double delta[2];   // the gap is equal  to two radi or a diameter
-   int gaps = n-1;
-   delta[0] = gap(p.c[0], q.c[0], gaps);
-   delta[1] = gap(p.c[1], q.c[1], gaps);
-
-   Coord firstCenter; // really first circle entirely on the line
-   firstCenter.c[0] = p.c[0] + delta[0];
-   firstCenter.c[1] = p.c[1] + delta[1];
-
-   // the midpoint is the radius, from the center of the first circle to first gap
-   Coord rPt = midpoint(p, firstCenter);  // the coordinates of the radius on the line
-   double r = norm(p, rPt);  
-
-   // draw A circles
-   G_rgb(0, 0, 1); // circle colors
-   double cx, cy;
-   cx = p.c[0] + 0;
-   cy = p.c[1] + 0;
-   G_circle(cx, cy, r);
-   for (int i = 0; i<gaps; ++i){
-      cx += delta[0];
-      cy += delta[1];
-      G_circle(cx, cy, r);
-      G_display_image();  
-   }
-
-   gaps = n*2;
-
-   delta[0] = gap(p.c[0], q.c[0], gaps); // the gap is equal  to two radi or a diameter
-   delta[1] = gap(p.c[1], q.c[1], gaps);
-   
-   firstCenter.c[0] = p.c[0] + delta[0]; // the center of the first circle
-   firstCenter.c[1] = p.c[1] + delta[1];
-
-   
-   r = norm(p, firstCenter);  // from p the starting point, to the center of the first circle
-
-
-
-   // draw B circles
-   G_rgb(1, 0, 0); // circle colors
-   double cx2, cy2;
-   cx2 = firstCenter.c[0] + 0;
-   cy2 = firstCenter.c[1] + 0;
-   G_circle(cx2, cy2, r);
-   G_display_image();  
-   for (int i = 1; i<n; ++i){
-      cx2 += delta[0]*2;
-      cy2 += delta[1]*2;
-      // if(i%2==0){
-         G_circle(cx2, cy2, r);
-         G_display_image();  
-      // }
-   }
-
-
-
-
-   
-   // double gap = swidth / (n-1);
-
-//   basicParabola(n, gap, swidth, sheight);
-   // challengeParabola(n, gap, swidth, sheight);
-   // double gap2 = swidth / (2*(n-1));
-   // challengeParabolaRecursive(n, gap2, swidth, sheight, True, True);
-
    
    int key ;   
    key =  G_wait_key() ; // pause so user can see results

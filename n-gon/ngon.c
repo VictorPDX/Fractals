@@ -236,12 +236,12 @@ int main()
 //    G_choose_repl_display() ;
 
    int n=8;
-   // printf("What degree polynomial would you like to build? ");
-   // scanf("%d", &n);
-   // if(n < 1){
-   //    printf("\nERROR: Unacceptable number of circles\n");
-   //    exit(1);
-   // }
+   printf("What degree polynomial would you like to build? ");
+   scanf("%d", &n);
+   if(n < 1){
+      printf("\nERROR: Unacceptable number of circles\n");
+      exit(1);
+   }
 
    // must do this before you do 'almost' any other graphical tasks 
    swidth = 600 ;  sheight = 600 ;

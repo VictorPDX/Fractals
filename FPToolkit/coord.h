@@ -1,4 +1,4 @@
-#include  "../FPToolkit/FPToolkit.c"
+#include  "FPToolkit.c"
 
 #define POINTER(c, x, y) c[0] = &x; c[1] = &y 
 
@@ -9,6 +9,11 @@ typedef struct {
    double* c[2];
 }Coord;
 
+Coord* newCoord(){
+   Coord* p = (Coord*)malloc(sizeof(Coord));
+   POINTER(p->c, p->x, p->y);
+   return p;
+}
 
 
 Coord getClick(){

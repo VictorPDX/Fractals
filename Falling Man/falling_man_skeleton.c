@@ -26,13 +26,10 @@ void translate (double dx, double dy){
 // shoudl scale by any factor that you chose
 // start by scaling by a third
 void scale(double sx, double sy){
-  
-
   for(int i = 0; i<n; ++i){
     x[i] = (x[i] * sx);
     y[i] = (y[i] * sy);
   }
-
 }
 
 void rotate(double theta){
@@ -44,8 +41,6 @@ void rotate(double theta){
   }
 
 }
-
-
 
 int main() 
 {
@@ -83,7 +78,7 @@ int main()
     translate(-centerX, -centerY) ; 
     (q=='j')? scale(0.98,  0.98) : scale(1.02, 1.02); 
     (q=='j')? rotate(theta) : rotate(-theta);
-    translate(centerY, centerY) ;
+    translate(centerX, centerY) ;
 
     G_rgb(0,0,0) ;
     G_clear();

@@ -1,7 +1,7 @@
 // #define DEBUG
 // #include "FPToolkit.c"
 
-#include "coord.h"
+#include "../FPToolkit/coord.h"
 
 
 // appropriate for a 600x600 window
